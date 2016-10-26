@@ -1,42 +1,42 @@
-ec2_vpc{ 'Web Host VPC':
+ec2_vpc{ 'WebServersVPC':
 ensure  => present,
 region => 'us-east-1',
 instance_tenancy => 'default',
-cidr_block => '10.0.0.0/16',
+cidr_block => '20.0.0.0/16',
 }
-ec2_vpc_subnet { 'Web Host Subnet' :
+ec2_vpc_subnet { 'WebServersSubnet' :
 ensure => present,
-vpc => 'Web Host VPC',
+vpc => 'WebServersVPC',
 region => 'us-east-1',
 availability_zone   => 'us-east-1a',
-cidr_block => '10.0.0.0/24',
-route_table => 'Web Host Route',
+cidr_block => '20.0.0.0/24',
+route_table => 'WebServersRoute',
 }
-ec2_vpc_internet_gateway{ 'Web Host IG' :
+ec2_vpc_internet_gateway{ 'WebServersIGW' :
 ensure => present,
 region => 'us-east-1',
-vpc => 'Web Host VPC',
+vpc => 'WebServersVPC',
 }
-ec2_vpc_routetable{ 'Web Host Route':
+ec2_vpc_routetable{ 'WebServersRoute':
 ensure => present,
 region => 'us-east-1',
-vpc => 'Web Host VPC',
+vpc => 'WebServersVPC',
 routes => [
     {
-      destination_cidr_block => '10.0.0.0/16',
+      destination_cidr_block => '20.0.0.0/16',
       gateway                => 'local'
     },{
       destination_cidr_block => '0.0.0.0/0',
-      gateway                => 'Web Host IG'
+      gateway                => 'WebServersIGW'
     },
   ],
 }  
-ec2_securitygroup { 'Web Host Security':
+ec2_securitygroup { 'DevOpsWebServerSecurity':
   ensure      => present,
   region      => 'us-east-1',
-  description => 'Security Purpose',
-  subnet      => 'Web Host Subnet',
-  vpc         => 'Web Host VPC',
+  description => 'InstanceLevelSecurity',
+  subnet      => 'WebServersSubnet',
+  vpc         => 'WebServersVPC',
   ingress     => [{
     protocol  => 'tcp',
     port      => 80,
@@ -48,7 +48,7 @@ ec2_securitygroup { 'Web Host Security':
 #    tag_name  => 'value',
 #  },
 }
-ec2_instance { 'Web Host server1':
+ec2_instance { 'WebServer1':
   ensure            => present,
   region            => 'us-east-1',
   availability_zone => 'us-east-1a',
@@ -56,14 +56,14 @@ ec2_instance { 'Web Host server1':
   instance_type     => 't2.micro',
   monitoring        => true,
   key_name          => 'sample',
-  subnet 			=> 'Web Host Subnet',
-  security_groups   => ['Web Host Security'],
+  subnet 			=> 'WebServersSubnet',
+  security_groups   => ['DevOpsWebServerSecurity'],
   user_data         => template('apache-puppet.sh'),
 #  tags              => {
 #    tag_name => 'value',
 #  },
 }
-ec2_instance { 'Web Host server2':
+ec2_instance { 'WebServer2':
   ensure            => present,
   region            => 'us-east-1',
   availability_zone => 'us-east-1b',
@@ -71,20 +71,20 @@ ec2_instance { 'Web Host server2':
   instance_type     => 't2.micro',
   monitoring        => true,
   key_name          => 'sample',
-  subnet 			=> 'Web Host Subnet',
-  security_groups   => ['Web Host Security'],
+  subnet 			=> 'WebServersSubnet',
+  security_groups   => ['DevOpsWebServerSecurity'],
   user_data         => template('apache-puppet.sh'),
 #  tags              => {
 #    tag_name => 'value',
 #  },
 }
 
-elb_loadbalancer { 'Web Host load-balancer':
+elb_loadbalancer { 'WebServerLB':
   ensure               => present,
   region               => 'us-east-1',
   availability_zones   => ['us-east-1a', 'us-east-1b'],
-  instances            => ['Web Host server1', 'Web Host server2'],
-  security_groups      => ['Web Host Security'],
+  instances            => ['WebServer1', 'WebServer2'],
+  security_groups      => ['WebServersSecurity'],
   listeners            => [{
     protocol           => 'HTTP',
     load_balancer_port => 80,
@@ -95,7 +95,7 @@ elb_loadbalancer { 'Web Host load-balancer':
     load_balancer_port => 443,
     instance_protocol  => 'HTTPS',
     instance_port      => 8080,
-    ssl_certificate_id => 'arn:aws:acm:us-east-1:753757040569:certificate/332e4a7e-e03d-4d2e-876e-79b623601f18',
+    ssl_certificate_id => 'arn:aws:acm:us-east-1:744910358745:certificate/332e4a7e-e03d-4d2e-876e-79b623601f18',
   }],
   tags                 => {
     tag_name => 'value',
