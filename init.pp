@@ -58,7 +58,7 @@ ec2_instance { 'WebServer1':
   key_name          => 'sample',
   subnet 			=> 'WebServersSubnet',
   security_groups   => ['DevOpsWebServerSecurity'],
-  user_data         => template('apache-puppet.sh'),
+  user_data         => template('apache.sh'),
 #  tags              => {
 #    tag_name => 'value',
 #  },
@@ -73,7 +73,7 @@ ec2_instance { 'WebServer2':
   key_name          => 'sample',
   subnet 			=> 'WebServersSubnet',
   security_groups   => ['DevOpsWebServerSecurity'],
-  user_data         => template('apache-puppet.sh'),
+  user_data         => template('apache.sh'),
 #  tags              => {
 #    tag_name => 'value',
 #  },
