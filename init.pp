@@ -1,4 +1,3 @@
-
 ec2_vpc{ 'WebServersVPC':
 ensure  => present,
 region => 'us-east-1',
